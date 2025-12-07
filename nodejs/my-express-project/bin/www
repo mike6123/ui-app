@@ -1,0 +1,50 @@
+#!/usr/bin/env node
+
+var app = require('../app');
+var debug = require('debug')('my-express-project:server');
+var http = require('http');
+
+// 标准化端口
+function normalizePort(val) {
+  var port = parseInt(val, 10);
+  if (isNaN(port)) return val;
+  if (port >= 0) return port;
+  return false;
+}
+
+var port = normalizePort(process.env.PORT || '3000');
+app.set('port', port);
+
+// 创建服务器
+var server = http.createServer(app);
+
+// 强制IPv4监听，避免localhost解析为IPv6
+server.listen(port, '0.0.0.0', () => {
+  console.log(`🚀 服务启动中，监听端口：${port}（IPv4）`);
+});
+
+// 错误处理
+server.on('error', function onError(error) {
+  if (error.syscall !== 'listen') throw error;
+  var bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' 需要管理员权限');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' 端口已被占用');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+});
+
+// 监听成功回调
+server.on('listening', function onListening() {
+  var addr = server.address();
+  var bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
+  debug('Listening on ' + bind);
+  console.log(`✅ 服务监听成功！访问地址：http://127.0.0.1:${addr.port}`);
+});
